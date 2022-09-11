@@ -241,8 +241,56 @@ class VehicleRequest extends CommonObject
 		$resultcreate = $this->createCommon($user, $notrigger);
 
 		//$resultvalidate = $this->validate($user, $notrigger);
-
+		// send email to supervisor
+		$this->sendEmailNotification($user);
 		return $resultcreate;
+	}
+
+	public function sendEmailNotification(User $user){
+		$subject = 'Vehicle Request';
+		$supervisorId = $user->fk_user;
+		$sql = "SELECT * FROM ".MAIN_DB_PREFIX."user WHERE rowid = ".$supervisorId;
+		$resql = $this->db->query($sql);
+        $supervisor = $this->db->fetch_object($resql);
+		$supervisorEmail = $supervisor->email;
+		$sendTo = $supervisorEmail;
+		$message = '
+			<html>
+			<head>
+				<title>Vehicle Request</title>
+			</head>
+			<body>
+				<p>Hi '.$supervisor->firstname.',</p>
+				<p>A new vehicle request has been submitted by '.$user->firstname.' '.$user->lastname.'. Please login to your account to view the request.</p>
+				<p>Thank you,</p>
+				<p>Vehicle Request System</p>
+			</body>
+			</html>
+		';
+		$mailfile = new CMailFile(
+			$subject,
+            $sendTo,
+        //  $replyto,
+            $message,
+        //  $filename_list,
+        //  $mimetype_list,
+        //  $mimefilename_list,
+            '',
+            '',
+            0,
+            -1,
+            '',
+            '',
+            '',
+            '',
+            'notification'
+		);
+
+		$mailfile->sendfile();
+	}
+
+	public function sendPushNotification() {
+
 	}
 
 	/**
