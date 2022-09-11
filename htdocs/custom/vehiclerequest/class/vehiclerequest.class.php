@@ -702,7 +702,10 @@ class VehicleRequest extends CommonObject
 		 $this->error='Permission denied';
 		 return -1;
 		 }
-		return $this->setApprovalStatus($user, self::APPROVAL_APPROVED, $notrigger, 'VEHICLEREQUEST_APPROVED');
+		 
+		 $result = $this->setApprovalStatus($user, self::APPROVAL_APPROVED, $notrigger, 'VEHICLEREQUEST_APPROVED');
+		 $this->sendUpdateNotificationEmail($user);
+		 return $result;
 	}
 	public function setApprovalRejected($user, $notrigger = 0)
 	{
@@ -754,6 +757,53 @@ class VehicleRequest extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
+	}
+
+	/**
+	 * Send update notification email
+	 */
+	public function sendUpdateNotificationEmail($user)
+	{
+		$subject = 'Update on Vehicle Request';
+		$userId = $this->fk_user_creat;
+		$sql = "SELECT * FROM ".MAIN_DB_PREFIX."user WHERE rowid = ".$userId;
+		$resql = $this->db->query($sql);
+        $user = $this->db->fetch_object($resql);
+		$userEmail = $user->email;
+		$sendTo = $userEmail;
+		$message = '
+			<html>
+			<head>
+				<title>Vehicle Request Updated</title>
+			</head>
+			<body>
+				<p>Hi '.$user->firstname.',</p>
+				<p>An update was made to your vehicle request by'. $user->firstname .' '. $user->lastname .' Please login to your account to view the request.</p>
+				<p>Thank you,</p>
+				<p>Vehicle Request System</p>
+			</body>
+			</html>
+		';
+		$mailfile = new CMailFile(
+			$subject,
+            $sendTo,
+        //  $replyto,
+            $message,
+        //  $filename_list,
+        //  $mimetype_list,
+        //  $mimefilename_list,
+            '',
+            '',
+            0,
+            -1,
+            '',
+            '',
+            '',
+            '',
+            'notification'
+		);
+
+		$mailfile->sendfile();
 	}
 
 	/**
