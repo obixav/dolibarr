@@ -95,6 +95,8 @@ $backtopage = GETPOST('backtopage', 'alpha');
 $backtopageforcancel = GETPOST('backtopageforcancel', 'alpha');
 $lineid   = GETPOST('lineid', 'int');
 
+
+
 // Initialize technical objects
 $object = new VehicleRequest($db);
 $extrafields = new ExtraFields($db);
@@ -124,16 +126,21 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be includ
 
 // There is several ways to check permission.
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
-$enablepermissioncheck = 0;
+$enablepermissioncheck = 1;
 if ($enablepermissioncheck) {
-	$permissiontoread = $user->rights->vehiclerequest->vehiclerequest->read;
-	$permissiontoadd = $user->rights->vehiclerequest->vehiclerequest->write; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-	$permissiontodelete = $user->rights->vehiclerequest->vehiclerequest->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+	$permissiontoread = $user->rights->fsa->vehicle->read;
+	$permissiontoadd = $user->rights->fsa->vehicle->write; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+	$permissiontoapprove=$user->rights->fsa->vehicle->supervisorapprove;
+	$permissiontoassign=$user->rights->fsa->vehicle->assign;
+	$permissiontodelete = $user->rights->fas->vehicle->delete || ($permissiontoadd && isset($object->approval_status) && $object->approval_status == $object::APPROVAL_PENDING);
 	$permissionnote = $user->rights->vehiclerequest->vehiclerequest->write; // Used by the include of actions_setnotes.inc.php
 	$permissiondellink = $user->rights->vehiclerequest->vehiclerequest->write; // Used by the include of actions_dellink.inc.php
+	$permissiontorequest=$user->rights->fsa->vehicle->request;
 } else {
 	$permissiontoread = 1;
 	$permissiontoadd = 1; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+	$permissiontoapprove=1;
+	$permissiontoassign=1;
 	$permissiontodelete = 1;
 	$permissionnote = 1;
 	$permissiondellink = 1;
@@ -179,6 +186,10 @@ if (empty($reshook)) {
 
 	// Actions cancel, add, update, update_extras, confirm_validate, confirm_delete, confirm_deleteline, confirm_clone, confirm_close, confirm_setdraft, confirm_reopen
 	include DOL_DOCUMENT_ROOT.'/core/actions_addupdatedelete.inc.php';
+
+	//include my custom actions
+	include 'vehiclerequest_card_actions.php';
+
 
 	// Actions when linking object each other
 	include DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php';
@@ -326,6 +337,18 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	$formconfirm = '';
 
 	// Confirmation to delete
+	if ($action == 'setapproved') {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('ApproveVehicleRequest'), $langs->trans('ConfirmRequestApproval'), 'confirm_setapproved', '', 0, 1);
+	}
+	if ($action == 'setrejected') {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('RejectVehicleRequest'), $langs->trans('ConfirmRequestRejection'), 'confirm_setrejected', '', 0, 1);
+	}
+	if ($action == 'settripstarted') {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('Start Trip'), $langs->trans('Start Trip'), 'confirm_settripstarted', 'Are you sure that this trip has started? Click yes to mark the vehicle as unavailable.', 0, 1);
+	}
+	if ($action == 'settripcompleted') {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('Complete Trip'), $langs->trans('Complete Trip'), 'confirm_settripcompleted', 'Are you sure that this trip has been completed? Click yes to mark the vehicle as available', 0, 1);
+	}
 	if ($action == 'delete') {
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DeleteVehicleRequest'), $langs->trans('ConfirmDeleteObject'), 'confirm_delete', '', 0, 1);
 	}
@@ -489,6 +512,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 
 	// Buttons for actions
+//if(in_array($object->fk_user_creat,$user->get_children()))
+//	print 'is child'."\n";
+//
+//print $object->fk_user_creat;
+
 
 	if ($action != 'presend' && $action != 'editline') {
 		print '<div class="tabsAction">'."\n";
@@ -500,29 +528,45 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		if (empty($reshook)) {
 			// Send
-			if (empty($user->socid)) {
-				print dolGetButtonAction($langs->trans('SendMail'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=presend&mode=init&token='.newToken().'#formmailbeforetitle');
+//			if (empty($user->socid)) {
+//				print dolGetButtonAction($langs->trans('SendMail'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=presend&mode=init&token='.newToken().'#formmailbeforetitle');
+//			}
+
+//			// Back to draft
+//			if ($object->status == $object::STATUS_VALIDATED) {
+//				print dolGetButtonAction($langs->trans('SetToDraft'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=confirm_setdraft&confirm=yes&token='.newToken(), '', $permissiontoadd);
+//			}
+
+			// Approve Vehicle request
+			if ($object->approval_status == $object::APPROVAL_PENDING && in_array($object->fk_user_creat,$user->getAllChildIds())) {
+				print dolGetButtonAction($langs->trans('Approve'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=setapproved&token='.newToken(), '', $permissiontoapprove);
+				print dolGetButtonAction($langs->trans('Reject'), '', 'danger', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=setrejected&token='.newToken(), '', $permissiontoapprove);
+			}
+			//change trip status
+			if ($object->tripstatus == $object::TRIPSTATUS_PENDING && $user->id==$object->fk_user_creat) {
+				print dolGetButtonAction($langs->trans('Start Trip'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=settripstarted&token='.newToken(), '', $permissiontorequest);
+			}
+			if ($object->tripstatus == $object::TRIPSTATUS_ONTRIP && $user->id==$object->fk_user_creat) {
+				print dolGetButtonAction($langs->trans('Complete Trip'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=settripcompleted&token='.newToken(), '', $permissiontorequest);
 			}
 
-			// Back to draft
-			if ($object->status == $object::STATUS_VALIDATED) {
-				print dolGetButtonAction($langs->trans('SetToDraft'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=confirm_setdraft&confirm=yes&token='.newToken(), '', $permissiontoadd);
-			}
+
+			if($permissiontoassign){
 
 			print dolGetButtonAction($langs->trans('Modify'), '', 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit&token='.newToken(), '', $permissiontoadd);
-
-			// Validate
-			if ($object->status == $object::STATUS_DRAFT) {
-				if (empty($object->table_element_line) || (is_array($object->lines) && count($object->lines) > 0)) {
-					print dolGetButtonAction($langs->trans('Validate'), '', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=confirm_validate&confirm=yes&token='.newToken(), '', $permissiontoadd);
-				} else {
-					$langs->load("errors");
-					print dolGetButtonAction($langs->trans("ErrorAddAtLeastOneLineFirst"), $langs->trans("Validate"), 'default', '#', '', 0);
-				}
 			}
+			// Validate
+//			if ($object->status == $object::STATUS_DRAFT) {
+//				if (empty($object->table_element_line) || (is_array($object->lines) && count($object->lines) > 0)) {
+//					print dolGetButtonAction($langs->trans('Validate'), '', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=confirm_validate&confirm=yes&token='.newToken(), '', $permissiontoadd);
+//				} else {
+//					$langs->load("errors");
+//					print dolGetButtonAction($langs->trans("ErrorAddAtLeastOneLineFirst"), $langs->trans("Validate"), 'default', '#', '', 0);
+//				}
+//			}
 
 			// Clone
-			print dolGetButtonAction($langs->trans('ToClone'), '', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.(!empty($object->socid)?'&socid='.$object->socid:'').'&action=clone&token='.newToken(), '', $permissiontoadd);
+//			print dolGetButtonAction($langs->trans('ToClone'), '', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.(!empty($object->socid)?'&socid='.$object->socid:'').'&action=clone&token='.newToken(), '', $permissiontoadd);
 
 			/*
 			if ($permissiontoadd) {
@@ -542,8 +586,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			*/
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
+			if($object->approval_status == $object::APPROVAL_PENDING && $user->id==$object->fk_user_creat){
+
+
 			print dolGetButtonAction($langs->trans('Delete'), '', 'delete', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=delete&token='.newToken(), '', $permissiontodelete || ($object->status == $object::STATUS_DRAFT && $permissiontoadd));
-		}
+			}
+			}
 		print '</div>'."\n";
 	}
 

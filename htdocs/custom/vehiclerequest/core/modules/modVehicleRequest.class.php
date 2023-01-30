@@ -283,14 +283,14 @@ class modVehicleRequest extends DolibarrModules
 		$this->rights[$r][5] = 'supervisorapprove'; // In php code, permission will be checked by test if ($user->rights->vehiclerequest->vehicle->delete)
 		$r++;
 		$this->rights[$r][0] = $this->numero . sprintf("%02d", $r + 1); // Permission id (must not be already used)
-		$this->rights[$r][1] = 'Approve and Assign vehicles to vehicle requests'; // Permission label
-		$this->rights[$r][4] = 'vehicle';
-		$this->rights[$r][5] = 'approve'; // In php code, permission will be checked by test if ($user->rights->vehiclerequest->vehicle->delete)
-		$r++;
-		$this->rights[$r][0] = $this->numero . sprintf("%02d", $r + 1); // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Make vehicle requests'; // Permission label
 		$this->rights[$r][4] = 'vehicle';
 		$this->rights[$r][5] = 'request'; // In php code, permission will be checked by test if ($user->rights->vehiclerequest->vehicle->delete)
+		$r++;
+		$this->rights[$r][0] = $this->numero . sprintf("%02d", $r + 1); // Permission id (must not be already used)
+		$this->rights[$r][1] = 'Assign vehicle to Vehicle Requests'; // Permission label
+		$this->rights[$r][4] = 'vehicle';
+		$this->rights[$r][5] = 'assign'; // In php code, permission will be checked by test if ($user->rights->vehiclerequest->vehicle->delete)
 		$r++;
 		/* END MODULEBUILDER PERMISSIONS */
 
@@ -375,7 +375,7 @@ class modVehicleRequest extends DolibarrModules
 			// Define condition to show or hide menu entry. Use '$conf->vehiclerequest->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 			'enabled' => '$conf->vehiclerequest->enabled',
 			// Use 'perms'=>'$user->rights->vehiclerequest->level1->level2' if you want your menu with a permission rules
-			'perms' => '$user->rights->fsa->vehicle->write',
+			'perms' => '$user->rights->fsa->vehicle->assign',
 			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
 			'user' => 2,
@@ -395,7 +395,7 @@ class modVehicleRequest extends DolibarrModules
 			// Define condition to show or hide menu entry. Use '$conf->vehiclerequest->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 			'enabled' => '$conf->vehiclerequest->enabled',
 			// Use 'perms'=>'$user->rights->vehiclerequest->level1->level2' if you want your menu with a permission rules
-			'perms' => '$user->rights->fsa->vehicle->write',
+			'perms' => '$user->rights->fsa->vehicle->assign',
 			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
 			'user' => 2,
@@ -415,7 +415,7 @@ class modVehicleRequest extends DolibarrModules
 			// Define condition to show or hide menu entry. Use '$conf->vehiclerequest->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 			'enabled' => '$conf->vehiclerequest->enabled',
 			// Use 'perms'=>'$user->rights->vehiclerequest->level1->level2' if you want your menu with a permission rules
-			'perms' => '$user->rights->fsa->vehicle->write',
+			'perms' => '$user->rights->fsa->vehicle->assign',
 			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
 			'user' => 2
@@ -476,7 +476,7 @@ class modVehicleRequest extends DolibarrModules
 			// Define condition to show or hide menu entry. Use '$conf->vehiclerequest->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 			'enabled' => '$conf->vehiclerequest->enabled',
 			// Use 'perms'=>'$user->rights->vehiclerequest->level1->level2' if you want your menu with a permission rules
-			'perms' => '$user->rights->fsa->vehicle->write',
+			'perms' => '$user->rights->fsa->vehicle->assign',
 			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
 			'user' => 2,
@@ -595,10 +595,10 @@ class modVehicleRequest extends DolibarrModules
 				}
 
 				$sql = array_merge($sql, array(
-					"DELETE FROM " . MAIN_DB_PREFIX . "document_model WHERE nom = 'standard_" . strtolower($myTmpObjectKey) . "' AND type = '" . $this->db->escape(strtolower($myTmpObjectKey)) . "' AND entity = " . ((int)$conf->entity),
-					"INSERT INTO " . MAIN_DB_PREFIX . "document_model (nom, type, entity) VALUES('standard_" . strtolower($myTmpObjectKey) . "', '" . $this->db->escape(strtolower($myTmpObjectKey)) . "', " . ((int)$conf->entity) . ")",
-					"DELETE FROM " . MAIN_DB_PREFIX . "document_model WHERE nom = 'generic_" . strtolower($myTmpObjectKey) . "_odt' AND type = '" . $this->db->escape(strtolower($myTmpObjectKey)) . "' AND entity = " . ((int)$conf->entity),
-					"INSERT INTO " . MAIN_DB_PREFIX . "document_model (nom, type, entity) VALUES('generic_" . strtolower($myTmpObjectKey) . "_odt', '" . $this->db->escape(strtolower($myTmpObjectKey)) . "', " . ((int)$conf->entity) . ")"
+					"DELETE FROM " . MAIN_DB_PREFIX . "document_model WHERE nom = 'standard_" . strtolower($myTmpObjectKey) . "' AND type = '" . $this->db->escape(strtolower($myTmpObjectKey)) . "' AND entity = " . ((int) $conf->entity),
+					"INSERT INTO " . MAIN_DB_PREFIX . "document_model (nom, type, entity) VALUES('standard_" . strtolower($myTmpObjectKey) . "', '" . $this->db->escape(strtolower($myTmpObjectKey)) . "', " . ((int) $conf->entity) . ")",
+					"DELETE FROM " . MAIN_DB_PREFIX . "document_model WHERE nom = 'generic_" . strtolower($myTmpObjectKey) . "_odt' AND type = '" . $this->db->escape(strtolower($myTmpObjectKey)) . "' AND entity = " . ((int) $conf->entity),
+					"INSERT INTO " . MAIN_DB_PREFIX . "document_model (nom, type, entity) VALUES('generic_" . strtolower($myTmpObjectKey) . "_odt', '" . $this->db->escape(strtolower($myTmpObjectKey)) . "', " . ((int) $conf->entity) . ")"
 				));
 			}
 		}
