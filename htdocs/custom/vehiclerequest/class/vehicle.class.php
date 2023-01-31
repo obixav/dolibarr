@@ -115,11 +115,11 @@ class Vehicle extends CommonObject
 		'model_pdf' => array('type'=>'varchar(255)', 'label'=>'Model pdf', 'enabled'=>'1', 'position'=>1010, 'notnull'=>-1, 'visible'=>0,),
 		'status' => array('type'=>'integer', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>0, 'default'=>'1', 'index'=>1, 'arrayofkeyval'=>array('0'=>'Draft', '1'=>'Validated', '9'=>'Canceled'),),
 		'fk_vehicle_type' => array('type'=>'integer:VehicleType:custom/vehiclerequest/class/vehicletype.class.php', 'label'=>'VehicleType', 'enabled'=>'1', 'position'=>1020, 'notnull'=>-1, 'visible'=>1, 'css'=>'maxwidth500 widthcentpercentminusxx', 'validate'=>'1', 'comment'=>"vehicle type id"),
-		'plate_no' => array('type'=>'varchar(10)', 'label'=>'Plate Number', 'enabled'=>'1', 'position'=>1040, 'notnull'=>1, 'visible'=>1, 'searchall'=>1, 'showoncombobox'=>'1', 'validate'=>'1',),
+		'plate_no' => array('type'=>'varchar(10)', 'label'=>'Plate Number', 'enabled'=>'1', 'position'=>1040, 'notnull'=>1, 'visible'=>1, 'searchall'=>1,  'validate'=>'1',),
 		'fk_vehicle_driver' => array('type'=>'integer:VehicleDriver:custom/vehiclerequest/class/vehicledriver.class.php', 'label'=>'Current Driver', 'enabled'=>'1', 'position'=>1030, 'notnull'=>0, 'visible'=>1, 'css'=>'maxwidth500 widthcentpercentminusxx',),
 		'vehicle_status' => array('type'=>'integer', 'label'=>'Vehicle Status', 'enabled'=>'1', 'position'=>1050, 'notnull'=>1, 'visible'=>1, 'default'=>'1', 'arrayofkeyval'=>array('0'=>'Maintenance', '1'=>'Available', '2'=>'On Trip'), 'validate'=>'1',),
 		'fk_last_request' => array('type'=>'integer:VehicleRequest:custom/vehiclerequest/class/vehiclerequest.class.php', 'label'=>'Last Vehicle Request', 'enabled'=>'1', 'position'=>1050, 'notnull'=>0, 'visible'=>5, 'default'=>'0',),
-		'make_model' => array('type'=>'varchar(100)', 'label'=>'Make/Model', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
+		'make_model' => array('type'=>'varchar(100)', 'label'=>'Make/Model', 'enabled'=>'1', 'position'=>50,'showoncombobox'=>'1', 'notnull'=>1, 'visible'=>1,),
 	);
 	public $rowid;
 	public $ref;
