@@ -119,6 +119,7 @@ class Vehicle extends CommonObject
 		'fk_vehicle_driver' => array('type'=>'integer:VehicleDriver:custom/vehiclerequest/class/vehicledriver.class.php', 'label'=>'Current Driver', 'enabled'=>'1', 'position'=>1030, 'notnull'=>0, 'visible'=>1, 'css'=>'maxwidth500 widthcentpercentminusxx',),
 		'vehicle_status' => array('type'=>'integer', 'label'=>'Vehicle Status', 'enabled'=>'1', 'position'=>1050, 'notnull'=>1, 'visible'=>1, 'default'=>'1', 'arrayofkeyval'=>array('0'=>'Maintenance', '1'=>'Available', '2'=>'On Trip'), 'validate'=>'1',),
 		'fk_last_request' => array('type'=>'integer:VehicleRequest:custom/vehiclerequest/class/vehiclerequest.class.php', 'label'=>'Last Vehicle Request', 'enabled'=>'1', 'position'=>1050, 'notnull'=>0, 'visible'=>5, 'default'=>'0',),
+		'make_model' => array('type'=>'varchar(100)', 'label'=>'Make/Model', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
 	);
 	public $rowid;
 	public $ref;
@@ -135,6 +136,7 @@ class Vehicle extends CommonObject
 	public $fk_vehicle_driver;
 	public $vehicle_status;
 	public $fk_last_request;
+	public $make_model;
 	// END MODULEBUILDER PROPERTIES
 
 
